@@ -1,9 +1,7 @@
 MKDIR_P = mkdir -p
 INSTALL_DATA = cp
 
-AWK = awk
 FIND = find
-GREP = grep
 SED = sed
 
 CURL = curl
@@ -87,12 +85,19 @@ clean = $(SED) -E ' \
 	s/<img[^>]*>//g; \
 	s/—|&mdash;/-/g; \
 	s/<\/?blockquote[^>]*>//g; \
+	s/<p>&nbsp;<\/p>//g; \
+	s/<\/(body|html)>//g; \
 	s/<sup>\[<a [^>]*>([^>]*)<\/a>]<\/sup>/[\1]/g; \
-	/^<div class="NAVHEADER">$$/,/^<a name="top" id="top">/d; \
 	s/<h4 class="mansect">(.*)<\/h4>/<h2>\1<\/h2>/; \
-	s/<p>&nbsp;<\/p>/<h2>COPYRIGHT<\/h2>/g; \
 	/^<a href="\#top"><span class="topOfPage">return to top of page<\/span><\/a><br>$$/d; \
-	/^\[ <a href="\.\.\/mindex.html">/,/^]/s/^[^]].*|^]//; \
+	/^\[ <a href="\.\.\/mindex.html">/,/^.*]/s/^[^]]*(]|$$)//; \
+	/<center.*registered Trademark/,/<\/center>/{ \
+		s/.*<center.*/<h2>COPYRIGHT<\/h2>\n&/; H; d; \
+	}; \
+	/^<(div|DIV) (class|CLASS)="NAVHEADER">$$/,/^<a name="top" id="top">/{ \
+		$$!d; $$s/.*//; \
+	}; \
+	$${ p; g; s/$$/<\/body><\/html>/; } \
 	'
 
 header = The Open Group Base Specifications Issue 8
@@ -105,16 +110,13 @@ html2man = $(PANDOC) --fail-if-warnings -s -f html -t man \
 
 convert = echo Generating $@; $(clean) $^ | $(html2man)
 
-copyright = $(SED) -n "/<p>&nbsp;<\/p>/,/<\/center>/p" $^
-
 title = $$(basename $@ .1p)
 
-builtin = echo Generating $@; { \
-	printf "<head><title>%s</title></head>\n" "$(title)"; \
-	$(SED) -n "/<a name=\"$(title)\" id=\"$(title)\">/,/<em>End of informative text.<\/em>/p" \
-		$^; \
-	$(copyright); \
-	} | $(clean) | $(html2man) -V section=1P >$@
+builtin = echo Generating $@; $(SED) -n \
+	-e "$$(printf '1i\\\n<!doctype html><html><head><title>%s</title></head><body>' "$(title)")" \
+	-e "/<a name=\"$(title)\" id=\"$(title)\">/,/<em>End of informative text.<\/em>/p" \
+	-e '/<center.*registered Trademark/,/<\/center>/p' \
+	$^ | $(clean) | $(html2man) -V section=1P >$@
 
 man1p man3p man7p:
 	$(MKDIR_P) $@
@@ -125,8 +127,7 @@ man1p/intro.1p: susv5-html/utilities/V3_chap01.html
 	@$(convert) -V section=1P >$@
 
 man1p/shell.1p: susv5-html/utilities/V3_chap02.html
-	@echo Generating $@; { $(clean) $^; $(copyright) | $(clean); } | \
-		$(html2man) -V section=1P >$@
+	@$(convert) -V section=1P >$@
 
 man3p/intro.3p: susv5-html/functions/V2_chap01.html
 	@$(convert) -V section=3P >$@
