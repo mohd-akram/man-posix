@@ -100,8 +100,8 @@ clean = $(SED) -E ' \
 	$${ p; g; s/$$/<\/body><\/html>/; } \
 	'
 
-header = The Open Group Base Specifications Issue 8
-footer = IEEE Std 1003.1-2024
+header = The Open Group Base Specifications Issue 8 / IEEE Std 1003.1-2024
+footer = POSIX.1-2024
 date = 2024
 
 html2man = $(PANDOC) --fail-if-warnings -s -f html -t man \
