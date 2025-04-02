@@ -74,11 +74,7 @@ clean = $(SED) -E ' \
 		s/General Information/Info/; \
 		y/abcdefghijklmnopqrstuvwxyz/ABCDEFGHIJKLMNOPQRSTUVWXYZ/; \
 	}; \
-	/<(a|img)[^>]*$$/N; \
-	/<(a|img)[^>]*$$/N; \
-	/<(a|img)[^>]*$$/N; \
-	/<(a|img)[^>]*$$/N; \
-	/<(a|img)[^>]*$$/N; \
+	/<(a|img)[^>]*$$/N; //N; //N; //N; //N; \
 	/<a[^>]*>[^<]*$$/N; \
 	s/<hr[^>]*>//; \
 	s/<dd><\/dd>//g; \
