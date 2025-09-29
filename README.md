@@ -19,6 +19,10 @@ Run `make install` to install to the `/usr/local` prefix.
     man 3p stdio.h
     man 3p execl
 
+### Devices
+
+    man 4p termios
+
 ### Specification
 
     man 7p regex

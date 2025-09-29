@@ -26,29 +26,36 @@ files = $(shell $(FIND) susv5-html \( \
 		-e 's|susv5-html/functions/(.*)\.html|man3p/\1.3p|' \
 		-e 's|susv5-html/basedefs/(.*)\.h\.html|man3p/\1.h.3p|' \
 		-e 's|susv5-html/basedefs/(.*)\.html|man7p/\1.7p|' \
-		-e 's/V1_chap01/intro/' -e 's/V1_chap02/conformance/' \
-		-e 's/V1_chap03/definitions/' -e 's/V1_chap04/concepts/' \
+		-e 's/V1_chap01/intro/' -e 's/V1_chap02/posix/' \
+		-e 's/V1_chap03/terms/' -e 's/V1_chap04/concepts/' \
 		-e 's/V1_chap05/format/' -e 's/V1_chap06/charset/' \
-		-e 's/V1_chap07/locale/' -e 's/V1_chap08/environment/' \
-		-e 's/V1_chap09/regex/' -e 's/V1_chap10/files/' \
-		-e 's/V1_chap11/terminal/' -e 's/V1_chap12/utilities/' \
+		-e 's/V1_chap07/locale/' -e 's/V1_chap08/environ/' \
+		-e 's/V1_chap09/regex/' -e 's/V1_chap10/hier/' \
+		-e 's/V1_chap11/termios/' -e 's/V1_chap12/syntax/' \
 		-e 's/V1_chap13/namespace/' -e 's/V1_chap14/headers/' \
 		-e 's/V2_chap01/intro/' -e 's/V2_chap02/info/' \
-		-e 's/V3_chap01/intro/' -e 's/V3_chap02/shell/')
+		-e 's/V3_chap01/intro/' -e 's/V3_chap02/shell/' \
+		-e 's|man7p/termios\.7p|man4p/termios.4p|')
 
-all: man1p man3p man7p susv5-html
+all: man1p man3p man4p man7p susv5-html
 	@$(MAKE) $(files)
 
 $(DESTDIR)$(mandir)/man%:
 	$(MKDIR_P) $@
 
-install: $(DESTDIR)$(mandir)/man1p $(DESTDIR)$(mandir)/man3p $(DESTDIR)$(mandir)/man7p
+install: \
+	$(DESTDIR)$(mandir)/man1p \
+	$(DESTDIR)$(mandir)/man3p \
+	$(DESTDIR)$(mandir)/man4p \
+	$(DESTDIR)$(mandir)/man7p
+
 	$(INSTALL_DATA) man1p/* $(DESTDIR)$(mandir)/man1p
 	$(INSTALL_DATA) man3p/* $(DESTDIR)$(mandir)/man3p
+	$(INSTALL_DATA) man4p/* $(DESTDIR)$(mandir)/man4p
 	$(INSTALL_DATA) man7p/* $(DESTDIR)$(mandir)/man7p
 
 clean:
-	$(RM) -r man1p man3p man7p susv5-html
+	$(RM) -r man1p man3p man4p man7p susv5-html
 
 susv5.tgz:
 	$(CURL) -O https://pubs.opengroup.org/onlinepubs/9799919799/download/susv5.tgz
@@ -61,14 +68,16 @@ clean = $(SED) -E ' \
 		s/&[lg]t;//g; \
 		s/([^<])\//\1_/g; \
 		s/Introduction/Intro/; \
+		s/Conformance/POSIX/; \
+		s/Definitions/Terms/; \
 		s/General Concepts/Concepts/; \
 		s/File Format Notation/Format/; \
 		s/Character Set/Charset/; \
-		s/Environment Variables/Environment/; \
+		s/Environment Variables/Environ/; \
 		s/Regular Expressions/Regex/; \
-		s/Directory Structure and Devices/Files/; \
-		s/General Terminal Interface/Terminal/; \
-		s/Utility Conventions/Utilities/; \
+		s/Directory Structure and Devices/Hier/; \
+		s/General Terminal Interface/Termios/; \
+		s/Utility Conventions/Syntax/; \
 		s/Namespace and Future Directions/Namespace/; \
 		s/Shell Command Language/Shell/; \
 		s/General Information/Info/; \
@@ -114,7 +123,7 @@ builtin = echo Generating $@; $(SED) -n \
 	-e '/<center.*registered Trademark/,/<\/center>/p' \
 	$^ | $(clean) | $(html2man) -V section=1P >$@
 
-man1p man3p man7p:
+man1p man3p man4p man7p:
 	$(MKDIR_P) $@
 
 # Specification
@@ -131,13 +140,16 @@ man3p/intro.3p: susv5-html/functions/V2_chap01.html
 man3p/info.3p: susv5-html/functions/V2_chap02.html
 	@$(convert) -V section=3P >$@
 
+man4p/termios.4p: susv5-html/basedefs/V1_chap11.html
+	@$(convert) -V section=4P >$@
+
 man7p/intro.7p: susv5-html/basedefs/V1_chap01.html
 	@$(convert) -V section=7P >$@
 
-man7p/conformance.7p: susv5-html/basedefs/V1_chap02.html
+man7p/posix.7p: susv5-html/basedefs/V1_chap02.html
 	@$(convert) -V section=7P >$@
 
-man7p/definitions.7p: susv5-html/basedefs/V1_chap03.html
+man7p/terms.7p: susv5-html/basedefs/V1_chap03.html
 	@$(convert) -V section=7P >$@
 
 man7p/concepts.7p: susv5-html/basedefs/V1_chap04.html
@@ -152,19 +164,16 @@ man7p/charset.7p: susv5-html/basedefs/V1_chap06.html
 man7p/locale.7p: susv5-html/basedefs/V1_chap07.html
 	@$(convert) -V section=7P >$@
 
-man7p/environment.7p: susv5-html/basedefs/V1_chap08.html
+man7p/environ.7p: susv5-html/basedefs/V1_chap08.html
 	@$(convert) -V section=7P >$@
 
 man7p/regex.7p: susv5-html/basedefs/V1_chap09.html
 	@$(convert) -V section=7P >$@
 
-man7p/files.7p: susv5-html/basedefs/V1_chap10.html
+man7p/hier.7p: susv5-html/basedefs/V1_chap10.html
 	@$(convert) -V section=7P >$@
 
-man7p/terminal.7p: susv5-html/basedefs/V1_chap11.html
-	@$(convert) -V section=7P >$@
-
-man7p/utilities.7p: susv5-html/basedefs/V1_chap12.html
+man7p/syntax.7p: susv5-html/basedefs/V1_chap12.html
 	@$(convert) -V section=7P >$@
 
 man7p/namespace.7p: susv5-html/basedefs/V1_chap13.html
